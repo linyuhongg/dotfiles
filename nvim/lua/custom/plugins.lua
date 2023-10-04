@@ -1,3 +1,4 @@
+
 local plugins = {
   {
     "rcarriga/nvim-dap-ui",
@@ -16,10 +17,6 @@ local plugins = {
         dapui.close()
       end
     end
-  },
-  {
-	  "christoomey/vim-tmux-navigator",
-	  lazy = false
   },
   {
     "mfussenegger/nvim-dap",
@@ -48,8 +45,12 @@ local plugins = {
     end,
   },
   {
+	  "christoomey/vim-tmux-navigator", 
+	  lazy = false
+  },
+  {
     "williamboman/mason.nvim",
-    opts = {
+    opts = { 
       ensure_installed = {
         "black",
         "debugpy",
