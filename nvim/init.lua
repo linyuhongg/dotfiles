@@ -4,6 +4,7 @@
 -- Leader key (must be set before lazy.nvim loads)
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
+vim.g.have_nerd_font = true
 
 -- ─────────────────────────────────────────────
 -- Options
@@ -89,7 +90,6 @@ require("lazy").setup({
   {
     "nvim-telescope/telescope.nvim",
     event = "VimEnter",
-    branch = "0.1.x",
     dependencies = {
       "nvim-lua/plenary.nvim",
       { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
@@ -107,6 +107,8 @@ require("lazy").setup({
       vim.keymap.set("n", "<leader>sd", builtin.diagnostics, { desc = "Search diagnostics" })
       vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "Search resume" })
       vim.keymap.set("n", "<leader>s.", builtin.oldfiles, { desc = "Search recent files" })
+      vim.keymap.set("n", "<leader>gs", builtin.git_status, { desc = "Git status (uncommitted files)" })
+      vim.keymap.set("n", "<leader>gc", builtin.git_commits, { desc = "Git commits" })
     end,
   },
 
