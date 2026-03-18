@@ -28,10 +28,26 @@ vim.o.inccommand = "split" -- live preview of :s substitutions
 vim.o.cursorline = true
 vim.o.scrolloff = 10
 vim.o.conceallevel = 2 -- hide markup in LaTeX/Markdown
+vim.o.concealcursor = "" -- reveal concealed text on current line (all modes)
 vim.o.termguicolors = true
 vim.o.tabstop = 4
 vim.o.shiftwidth = 4
 vim.o.expandtab = true
+
+-- ─────────────────────────────────────────────
+-- Markdown-friendly settings
+-- ─────────────────────────────────────────────
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "markdown",
+  callback = function()
+    vim.opt_local.wrap = true           -- soft wrap long lines
+    vim.opt_local.linebreak = true      -- wrap at word boundaries, not mid-word
+    vim.opt_local.number = false        -- hide line numbers
+    vim.opt_local.relativenumber = false
+    vim.opt_local.signcolumn = "auto"   -- show gutter only when signs exist
+    vim.opt_local.list = false          -- hide trailing spaces/tabs markers
+  end,
+})
 
 -- ─────────────────────────────────────────────
 -- Basic keymaps
@@ -40,6 +56,30 @@ vim.keymap.set("n", ";", ":", { desc = "Enter command mode" })
 vim.keymap.set("i", "jk", "<Esc>", { desc = "Exit insert mode" })
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostics list" })
+
+-- Force-kill LSP servers on quit (skip slow graceful shutdown)
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  callback = function()
+    vim.lsp.stop_client(vim.lsp.get_clients(), true)
+  end,
+})
+
+-- macOS-style navigation (requires kitty keyboard protocol — Ghostty sends these)
+vim.keymap.set({ "n", "v" }, "<D-Left>", "0", { desc = "Line start" })
+vim.keymap.set({ "n", "v" }, "<D-Right>", "$", { desc = "Line end" })
+vim.keymap.set({ "n", "v" }, "<D-Up>", "gg", { desc = "Top of file" })
+vim.keymap.set({ "n", "v" }, "<D-Down>", "G", { desc = "Bottom of file" })
+vim.keymap.set("i", "<D-Left>", "<Home>", { desc = "Line start (insert)" })
+vim.keymap.set("i", "<D-Right>", "<End>", { desc = "Line end (insert)" })
+vim.keymap.set({ "n", "i" }, "<D-z>", "<cmd>undo<CR>", { desc = "Undo" })
+vim.keymap.set({ "n", "i" }, "<D-S-z>", "<cmd>redo<CR>", { desc = "Redo" })
+
+-- Alt+Shift+Arrow to select by word (macOS-style)
+vim.keymap.set("n", "<A-S-Left>", "vb", { desc = "Select word left" })
+vim.keymap.set("n", "<A-S-Right>", "ve", { desc = "Select word right" })
+vim.keymap.set("v", "<A-S-Left>", "b", { desc = "Extend selection word left" })
+vim.keymap.set("v", "<A-S-Right>", "e", { desc = "Extend selection word right" })
+vim.keymap.set("v", "<BS>", "d", { desc = "Delete selection" })
 
 -- Window navigation (overridden by vim-tmux-navigator when tmux is running)
 vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Focus left window" })
@@ -70,7 +110,9 @@ require("lazy").setup({
     "catppuccin/nvim",
     name = "catppuccin",
     priority = 1000,
-    opts = { flavour = "latte" },
+    opts = {
+      flavour = "latte",
+    },
     config = function(_, opts)
       require("catppuccin").setup(opts)
       vim.cmd.colorscheme("catppuccin")
@@ -80,10 +122,35 @@ require("lazy").setup({
   -- ── Statusline ─────────────────────────────
   {
     "nvim-lualine/lualine.nvim",
-    dependencies = { "nvim-tree/nvim-web-devicons" },
+    dependencies = { "nvim-tree/nvim-web-devicons", "catppuccin/nvim" },
     opts = {
-      options = { theme = "catppuccin" },
+      options = { theme = "catppuccin-latte" },
     },
+  },
+
+  -- ── Bufferline (tab bar for open files) ────
+  {
+    "akinsho/bufferline.nvim",
+    version = "*",
+    lazy = false,
+    dependencies = { "nvim-tree/nvim-web-devicons", "catppuccin/nvim" },
+    opts = {
+      options = {
+        diagnostics = "nvim_lsp",       -- show LSP errors on tabs
+        offsets = {{
+          filetype = "NvimTree",
+          text = "Files",
+          highlight = "Directory",
+          separator = true,
+        }},
+      },
+    },
+    config = function(_, opts)
+      require("bufferline").setup(opts)
+      vim.keymap.set("n", "<Tab>", "<cmd>BufferLineCycleNext<CR>", { desc = "Next tab" })
+      vim.keymap.set("n", "<S-Tab>", "<cmd>BufferLineCyclePrev<CR>", { desc = "Previous tab" })
+      vim.keymap.set("n", "<leader>x", "<cmd>bd<CR>", { desc = "Close current tab" })
+    end,
   },
 
   -- ── Fuzzy finder ───────────────────────────
@@ -96,10 +163,16 @@ require("lazy").setup({
       "nvim-tree/nvim-web-devicons",
     },
     config = function()
-      require("telescope").setup({})
+      require("telescope").setup({
+        defaults = {
+          path_display = { "filename_first" },
+        },
+      })
       pcall(require("telescope").load_extension, "fzf")
 
       local builtin = require("telescope.builtin")
+      vim.keymap.set("n", "<leader><leader>", builtin.find_files, { desc = "Search files" })
+      vim.keymap.set("n", "<leader>g", builtin.live_grep, { desc = "Search by grep" })
       vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "Search files" })
       vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "Search by grep" })
       vim.keymap.set("n", "<leader>sb", builtin.buffers, { desc = "Search buffers" })
@@ -348,10 +421,25 @@ require("lazy").setup({
 
   -- ── Markdown ───────────────────────────────
   {
-    "MeanderingProgrammer/render-markdown.nvim",
-    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    "OXY2DEV/markview.nvim",
     ft = { "markdown" },
-    opts = {},
+    dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
+  },
+
+  -- ── Zen mode (distraction-free reading) ────
+  {
+    "folke/zen-mode.nvim",
+    keys = {
+      { "<leader>z", "<cmd>ZenMode<CR>", desc = "Toggle zen mode" },
+    },
+    opts = {
+      window = {
+        width = 90,
+        options = {
+          cursorline = false,
+        },
+      },
+    },
   },
 
   -- ── Tmux navigation ───────────────────────
@@ -394,6 +482,17 @@ require("lazy").setup({
     end,
     keys = {
       { "<leader>dpr", function() require("dap-python").test_method() end, desc = "DAP Python test method" },
+    },
+  },
+
+  -- ── Claude Code ─────────────────────────────
+  {
+    "greggh/claude-code.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    opts = {},
+    keys = {
+      { "<leader>cc", "<cmd>ClaudeCode<CR>", desc = "Toggle Claude Code" },
+      { "<leader>cs", "<cmd>ClaudeCodeSend<CR>", mode = "v", desc = "Send selection to Claude" },
     },
   },
 
