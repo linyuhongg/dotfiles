@@ -46,6 +46,15 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.relativenumber = false
     vim.opt_local.signcolumn = "auto"   -- show gutter only when signs exist
     vim.opt_local.list = false          -- hide trailing spaces/tabs markers
+    -- keep only marksman LSP completions ([[wiki-link]] suggestions); drop
+    -- buffer words, snippets, and path completions (too noisy for prose)
+    local ok, cmp = pcall(require, "cmp")
+    if ok then
+      cmp.setup.buffer({ sources = { { name = "nvim_lsp" } } })
+    end
+    -- tone down markview.nvim's inline code highlight (too visually heavy by default);
+    -- done here (not on ColorScheme) so it runs after markview initializes its highlights
+    vim.api.nvim_set_hl(0, "MarkviewInlineCode", { bg = "NONE", bold = false })
   end,
 })
 
@@ -73,6 +82,21 @@ vim.keymap.set("i", "<D-Left>", "<Home>", { desc = "Line start (insert)" })
 vim.keymap.set("i", "<D-Right>", "<End>", { desc = "Line end (insert)" })
 vim.keymap.set({ "n", "i" }, "<D-z>", "<cmd>undo<CR>", { desc = "Undo" })
 vim.keymap.set({ "n", "i" }, "<D-S-z>", "<cmd>redo<CR>", { desc = "Redo" })
+
+-- macOS-style copy/paste/cut/select-all
+vim.keymap.set("v", "<D-c>", "y", { desc = "Copy selection" })
+vim.keymap.set("v", "<D-x>", "d", { desc = "Cut selection" })
+vim.keymap.set("n", "<D-v>", "p", { desc = "Paste after cursor" })
+vim.keymap.set("v", "<D-v>", '"_dP', { desc = "Paste over selection" })
+vim.keymap.set("i", "<D-v>", "<C-r>+", { desc = "Paste (insert mode)" })
+vim.keymap.set("c", "<D-v>", "<C-r>+", { desc = "Paste (command mode)" })
+vim.keymap.set("n", "<D-a>", "ggVG", { desc = "Select all" })
+
+-- Alt+Arrow to move by word (macOS-style)
+vim.keymap.set({ "n", "v" }, "<M-Left>", "b", { desc = "Word back" })
+vim.keymap.set({ "n", "v" }, "<M-Right>", "w", { desc = "Word forward" })
+vim.keymap.set("i", "<M-Left>", "<C-o>b", { desc = "Word back (insert)" })
+vim.keymap.set("i", "<M-Right>", "<C-o>w", { desc = "Word forward (insert)" })
 
 -- Alt+Shift+Arrow to select by word (macOS-style)
 vim.keymap.set("n", "<A-S-Left>", "vb", { desc = "Select word left" })
@@ -193,7 +217,11 @@ require("lazy").setup({
       -- disable netrw (nvim-tree replaces it)
       vim.g.loaded_netrw = 1
       vim.g.loaded_netrwPlugin = 1
-      require("nvim-tree").setup()
+      require("nvim-tree").setup({
+        update_focused_file = {
+          enable = true,
+        },
+      })
       vim.keymap.set("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle file tree" })
     end,
   },
@@ -208,6 +236,7 @@ require("lazy").setup({
         ensure_installed = {
           "python", "latex", "markdown", "markdown_inline",
           "lua", "vim", "vimdoc", "bash", "json", "yaml", "toml",
+          "c", "cpp", "html", "css", "diff", "dockerfile",
         },
         highlight = { enable = true },
         indent = { enable = true },
@@ -424,6 +453,16 @@ require("lazy").setup({
     "OXY2DEV/markview.nvim",
     ft = { "markdown" },
     dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
+    opts = {
+      markdown_inline = {
+        inline_codes = {
+          enable = true,
+          hl = "MarkviewInlineCode",
+          padding_left = "",
+          padding_right = "",
+        },
+      },
+    },
   },
 
   -- ── Zen mode (distraction-free reading) ────
