@@ -42,6 +42,8 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     vim.opt_local.wrap = true           -- soft wrap long lines
     vim.opt_local.linebreak = true      -- wrap at word boundaries, not mid-word
+    vim.opt_local.concealcursor = "n"   -- keep markup concealed on cursor line in normal mode
+                                        -- (prevents table column misalignment from revealed backticks)
     vim.opt_local.number = false        -- hide line numbers
     vim.opt_local.relativenumber = false
     vim.opt_local.signcolumn = "auto"   -- show gutter only when signs exist
@@ -72,38 +74,6 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
     vim.lsp.stop_client(vim.lsp.get_clients(), true)
   end,
 })
-
--- macOS-style navigation (requires kitty keyboard protocol — Ghostty sends these)
-vim.keymap.set({ "n", "v" }, "<D-Left>", "0", { desc = "Line start" })
-vim.keymap.set({ "n", "v" }, "<D-Right>", "$", { desc = "Line end" })
-vim.keymap.set({ "n", "v" }, "<D-Up>", "gg", { desc = "Top of file" })
-vim.keymap.set({ "n", "v" }, "<D-Down>", "G", { desc = "Bottom of file" })
-vim.keymap.set("i", "<D-Left>", "<Home>", { desc = "Line start (insert)" })
-vim.keymap.set("i", "<D-Right>", "<End>", { desc = "Line end (insert)" })
-vim.keymap.set({ "n", "i" }, "<D-z>", "<cmd>undo<CR>", { desc = "Undo" })
-vim.keymap.set({ "n", "i" }, "<D-S-z>", "<cmd>redo<CR>", { desc = "Redo" })
-
--- macOS-style copy/paste/cut/select-all
-vim.keymap.set("v", "<D-c>", "y", { desc = "Copy selection" })
-vim.keymap.set("v", "<D-x>", "d", { desc = "Cut selection" })
-vim.keymap.set("n", "<D-v>", "p", { desc = "Paste after cursor" })
-vim.keymap.set("v", "<D-v>", '"_dP', { desc = "Paste over selection" })
-vim.keymap.set("i", "<D-v>", "<C-r>+", { desc = "Paste (insert mode)" })
-vim.keymap.set("c", "<D-v>", "<C-r>+", { desc = "Paste (command mode)" })
-vim.keymap.set("n", "<D-a>", "ggVG", { desc = "Select all" })
-
--- Alt+Arrow to move by word (macOS-style)
-vim.keymap.set({ "n", "v" }, "<M-Left>", "b", { desc = "Word back" })
-vim.keymap.set({ "n", "v" }, "<M-Right>", "w", { desc = "Word forward" })
-vim.keymap.set("i", "<M-Left>", "<C-o>b", { desc = "Word back (insert)" })
-vim.keymap.set("i", "<M-Right>", "<C-o>w", { desc = "Word forward (insert)" })
-
--- Alt+Shift+Arrow to select by word (macOS-style)
-vim.keymap.set("n", "<A-S-Left>", "vb", { desc = "Select word left" })
-vim.keymap.set("n", "<A-S-Right>", "ve", { desc = "Select word right" })
-vim.keymap.set("v", "<A-S-Left>", "b", { desc = "Extend selection word left" })
-vim.keymap.set("v", "<A-S-Right>", "e", { desc = "Extend selection word right" })
-vim.keymap.set("v", "<BS>", "d", { desc = "Delete selection" })
 
 -- Window navigation (overridden by vim-tmux-navigator when tmux is running)
 vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Focus left window" })
@@ -458,8 +428,6 @@ require("lazy").setup({
         inline_codes = {
           enable = true,
           hl = "MarkviewInlineCode",
-          padding_left = "",
-          padding_right = "",
         },
       },
     },
