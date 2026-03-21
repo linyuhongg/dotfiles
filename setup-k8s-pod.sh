@@ -48,6 +48,7 @@ chsh -s /usr/bin/zsh 2>/dev/null || true
 # ─── Tmux ────────────────────────────────────────────────────────
 git clone --depth=1 https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 ln -s ~/dotfiles/tmux.conf ~/.tmux.conf
+~/.tmux/plugins/tpm/bin/install_plugins
 
 # ─── Neovim (pre-built binary → /usr/local, already on PATH) ─────
 curl -fLO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
