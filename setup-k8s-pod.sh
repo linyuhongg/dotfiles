@@ -13,12 +13,16 @@ export DEBIAN_FRONTEND=noninteractive
 # ─── System packages (~2 min) ────────────────────────────────────
 apt-get update
 apt-get install -y --no-install-recommends \
-    build-essential ccache cmake curl git jq \
+    build-essential ccache cmake curl git jq locales \
     libnuma-dev libopenmpi-dev libprotobuf-dev libssl-dev libzmq3-dev \
     ninja-build openmpi-bin pkg-config protobuf-compiler ripgrep \
     software-properties-common tmux wget zsh \
     ca-certificates gnupg python3 python3-dev python3-pip python3-venv
 rm -rf /var/lib/apt/lists/*
+
+# ─── Locale (needed for Unicode/Nerd Font icons in tmux) ─────────
+locale-gen en_US.UTF-8
+export LANG=en_US.UTF-8
 
 # ─── Node.js + Claude Code ───────────────────────────────────────
 if ! command -v node >/dev/null 2>&1; then
