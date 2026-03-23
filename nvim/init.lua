@@ -68,6 +68,23 @@ vim.keymap.set("i", "jk", "<Esc>", { desc = "Exit insert mode" })
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostics list" })
 
+-- w stops at end of line instead of wrapping to next line
+vim.keymap.set("n", "w", function()
+  local cur_line = vim.fn.line(".")
+  local cur_col = vim.fn.col(".")
+  local line_len = vim.fn.col("$") - 1
+  if cur_col >= line_len then
+    vim.cmd("normal! w")
+    return
+  end
+  local view = vim.fn.winsaveview()
+  vim.cmd("normal! w")
+  if vim.fn.line(".") ~= cur_line then
+    vim.fn.winrestview(view)
+    vim.cmd("normal! $")
+  end
+end, { desc = "w clamped to line end" })
+
 -- Force-kill LSP servers on quit (skip slow graceful shutdown)
 vim.api.nvim_create_autocmd("VimLeavePre", {
   callback = function()
