@@ -121,12 +121,13 @@ require("lazy").setup({
     "catppuccin/nvim",
     name = "catppuccin",
     priority = 1000,
-    opts = {
-      flavour = "latte",
-    },
-    config = function(_, opts)
-      require("catppuccin").setup(opts)
-      vim.cmd.colorscheme("catppuccin")
+    config = function()
+      require("catppuccin").setup({ flavour = "latte" })
+      vim.cmd.colorscheme("catppuccin-latte")
+      -- Python-specific highlight overrides
+      vim.api.nvim_set_hl(0, "@variable.builtin", { fg = "#cf222e" })             -- self, cls (red)
+      vim.api.nvim_set_hl(0, "@variable.parameter", { fg = "#953800" })           -- function params (orange)
+      vim.api.nvim_set_hl(0, "@attribute", { fg = "#8250df", italic = true })     -- decorators (purple)
     end,
   },
 
@@ -135,7 +136,7 @@ require("lazy").setup({
     "nvim-lualine/lualine.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons", "catppuccin/nvim" },
     opts = {
-      options = { theme = "catppuccin-latte" },
+      options = { theme = "catppuccin" },
     },
   },
 
@@ -218,15 +219,18 @@ require("lazy").setup({
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require("nvim-treesitter.config").setup({
+      require("nvim-treesitter").setup({
         ensure_installed = {
           "python", "latex", "markdown", "markdown_inline",
           "lua", "vim", "vimdoc", "bash", "json", "yaml", "toml",
           "c", "cpp", "html", "css", "diff", "dockerfile",
         },
-        highlight = { enable = true },
-        indent = { enable = true },
+      })
+      -- Enable tree-sitter highlighting (built-in in Neovim 0.10+)
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function(args)
+          pcall(vim.treesitter.start, args.buf)
+        end,
       })
     end,
   },
