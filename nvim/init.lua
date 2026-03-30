@@ -48,15 +48,7 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.relativenumber = false
     vim.opt_local.signcolumn = "auto"   -- show gutter only when signs exist
     vim.opt_local.list = false          -- hide trailing spaces/tabs markers
-    -- keep only marksman LSP completions ([[wiki-link]] suggestions); drop
-    -- buffer words, snippets, and path completions (too noisy for prose)
-    local ok, cmp = pcall(require, "cmp")
-    if ok then
-      cmp.setup.buffer({ sources = { { name = "nvim_lsp" } } })
-    end
-    -- tone down markview.nvim's inline code highlight (too visually heavy by default);
-    -- done here (not on ColorScheme) so it runs after markview initializes its highlights
-    vim.api.nvim_set_hl(0, "MarkviewInlineCode", { bg = "NONE", bold = false })
+    -- (cmp markdown filtering is in cmp's config via setup.filetype)
   end,
 })
 
@@ -122,12 +114,17 @@ require("lazy").setup({
     name = "catppuccin",
     priority = 1000,
     config = function()
-      require("catppuccin").setup({ flavour = "latte" })
+      require("catppuccin").setup({
+        flavour = "latte",
+        custom_highlights = function()
+          return {
+            ["@variable.builtin.python"] = { fg = "#cf222e" },             -- self, cls (red)
+            ["@variable.parameter.python"] = { fg = "#953800" },           -- function params (orange)
+            ["@attribute.python"] = { fg = "#8250df", italic = true },     -- decorators (purple)
+          }
+        end,
+      })
       vim.cmd.colorscheme("catppuccin-latte")
-      -- Python-specific highlight overrides
-      vim.api.nvim_set_hl(0, "@variable.builtin", { fg = "#cf222e" })             -- self, cls (red)
-      vim.api.nvim_set_hl(0, "@variable.parameter", { fg = "#953800" })           -- function params (orange)
-      vim.api.nvim_set_hl(0, "@attribute", { fg = "#8250df", italic = true })     -- decorators (purple)
     end,
   },
 
@@ -372,6 +369,11 @@ require("lazy").setup({
           { name = "buffer" },
         },
       })
+      -- keep only marksman LSP completions in markdown; drop
+      -- buffer words, snippets, and path completions (too noisy for prose)
+      cmp.setup.filetype("markdown", {
+        sources = { { name = "nvim_lsp" } },
+      })
     end,
   },
 
@@ -452,6 +454,11 @@ require("lazy").setup({
         },
       },
     },
+    config = function(_, opts)
+      require("markview").setup(opts)
+      -- tone down inline code highlight (too visually heavy by default)
+      vim.api.nvim_set_hl(0, "MarkviewInlineCode", { bg = "NONE", bold = false })
+    end,
   },
 
   -- ── Zen mode (distraction-free reading) ────
