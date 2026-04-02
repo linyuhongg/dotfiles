@@ -133,7 +133,7 @@ require("lazy").setup({
     "nvim-lualine/lualine.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons", "catppuccin/nvim" },
     opts = {
-      options = { theme = "catppuccin" },
+      options = { theme = "catppuccin-latte" },
     },
   },
 
@@ -175,6 +175,15 @@ require("lazy").setup({
       require("telescope").setup({
         defaults = {
           path_display = { "filename_first" },
+          file_ignore_patterns = {},
+        },
+        pickers = {
+          find_files = {
+            no_ignore = true,
+          },
+          live_grep = {
+            additional_args = { "--no-ignore" },
+          },
         },
       })
       pcall(require("telescope").load_extension, "fzf")
@@ -205,6 +214,9 @@ require("lazy").setup({
       require("nvim-tree").setup({
         update_focused_file = {
           enable = true,
+        },
+        git = {
+          ignore = false,
         },
       })
       vim.keymap.set("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle file tree" })
@@ -377,26 +389,6 @@ require("lazy").setup({
     end,
   },
 
-  -- ── Formatting ─────────────────────────────
-  {
-    "stevearc/conform.nvim",
-    event = "BufWritePre",
-    cmd = { "ConformInfo" },
-    opts = {
-      formatters_by_ft = {
-        lua = { "stylua" },
-        python = { "black" },
-        tex = { "latexindent" },
-      },
-      format_on_save = {
-        timeout_ms = 500,
-        lsp_fallback = true,
-      },
-    },
-    keys = {
-      { "<leader>fm", function() require("conform").format({ lsp_fallback = true }) end, desc = "Format file" },
-    },
-  },
 
   -- ── Linting ────────────────────────────────
   {
@@ -421,9 +413,7 @@ require("lazy").setup({
     dependencies = { "williamboman/mason.nvim" },
     opts = {
       ensure_installed = {
-        "black", "ruff", "mypy", "debugpy", -- Python
-        "latexindent",                       -- LaTeX
-        "stylua",                            -- Lua
+        "ruff", "mypy", "debugpy", -- Python
       },
     },
   },
