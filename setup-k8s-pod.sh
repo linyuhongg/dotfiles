@@ -24,13 +24,13 @@ rm -rf /var/lib/apt/lists/*
 locale-gen en_US.UTF-8
 export LANG=en_US.UTF-8
 
-# ─── Node.js + Claude Code ───────────────────────────────────────
+# ─── Node.js + Claude Code + Codex ───────────────────────────────
 if ! command -v node >/dev/null 2>&1; then
     curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
     apt-get install -y nodejs
     rm -rf /var/lib/apt/lists/*
 fi
-npm install -g @anthropic-ai/claude-code
+npm install -g @anthropic-ai/claude-code @openai/codex
 
 # ─── Dotfiles ────────────────────────────────────────────────────
 git clone https://github.com/linyuhongg/dotfiles.git ~/dotfiles
